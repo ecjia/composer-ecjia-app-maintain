@@ -102,7 +102,7 @@ class admin extends ecjia_admin {
 		$this->assign('action_link', array('text' => __('运维工具','maintain'), 'href' => RC_Uri::url('maintain/admin/init')));
 		$code = trim($_GET['code']);
 		if (!empty($code)) {
-			$factory = new Ecjia\App\Maintain\Factory();
+			$factory = new \Ecjia\App\Maintain\Factory();
 			$maintain = $factory->command($code);
 			$config['code'] = $maintain->getCode();
 			$config['description'] = $maintain->getDescription();
@@ -125,7 +125,7 @@ class admin extends ecjia_admin {
 		}
 
         try {
-            $factory = new Ecjia\App\Maintain\Factory();
+            $factory = new \Ecjia\App\Maintain\Factory();
             $maintain = $factory->command($code);
             $result = $maintain->run();
         }
@@ -157,7 +157,7 @@ class admin extends ecjia_admin {
 	
 		$maintain_list = array();
 	
-		$factory = new Ecjia\App\Maintain\Factory();
+		$factory = new \Ecjia\App\Maintain\Factory();
 		$maintain_data = $factory->getCommands();
 		foreach ($maintain_data as $k => $event) {
 			$maintain_list[$k]['code'] = $event->getCode();
