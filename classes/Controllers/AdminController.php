@@ -48,7 +48,6 @@ namespace Ecjia\App\Maintain\Controllers;
 
 use admin_nav_here;
 use ecjia;
-use Ecjia\App\Maintain\Factory;
 use ecjia_screen;
 use InvalidArgumentException;
 use RC_App;
@@ -56,12 +55,8 @@ use RC_Script;
 use RC_Style;
 use RC_Uri;
 
-defined('IN_ECJIA') or exit('No permission resources.');
 
-/**
- * ECJia日志查看
- */
-class admin extends AdminBase
+class AdminController extends AdminBase
 {
     public function __construct()
     {
