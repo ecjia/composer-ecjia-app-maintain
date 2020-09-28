@@ -44,100 +44,115 @@
 //
 //  ---------------------------------------------------------------------------------
 //
+namespace Ecjia\App\Maintain\Controllers;
+
+use admin_nav_here;
+use ecjia;
 use Ecjia\App\Maintain\Factory;
+use ecjia_screen;
+use InvalidArgumentException;
+use RC_App;
+use RC_Script;
+use RC_Style;
+use RC_Uri;
 
 defined('IN_ECJIA') or exit('No permission resources.');
 
 /**
  * ECJia日志查看
  */
-class admin extends ecjia_admin {
-	public function __construct() {
-		parent::__construct();
-		
-		RC_Style::enqueue_style('chosen');
-		RC_Style::enqueue_style('uniform-aristo');
-		RC_Script::enqueue_script('jquery-chosen');
-		RC_Script::enqueue_script('jquery-uniform');
-		RC_Script::enqueue_script('jquery-validate');
-		RC_Script::enqueue_script('jquery-form');
-		RC_Script::enqueue_script('smoke');
-		RC_Script::enqueue_script('jquery-dataTables-bootstrap');
-		
-		RC_Style::enqueue_style('jquery-stepy');
-		
-		/*加载自定义JS和CSS*/
-		RC_Style::enqueue_style('maintain', RC_App::apps_url('statics/css/maintain.css', __FILE__), array(), false, false);
-		RC_Script::enqueue_script('maintain', RC_App::apps_url('statics/js/maintain.js', __FILE__), array(), false, 1);
+class admin extends AdminBase
+{
+    public function __construct()
+    {
+        parent::__construct();
+
+        RC_Style::enqueue_style('chosen');
+        RC_Style::enqueue_style('uniform-aristo');
+        RC_Script::enqueue_script('jquery-chosen');
+        RC_Script::enqueue_script('jquery-uniform');
+        RC_Script::enqueue_script('jquery-validate');
+        RC_Script::enqueue_script('jquery-form');
+        RC_Script::enqueue_script('smoke');
+        RC_Script::enqueue_script('jquery-dataTables-bootstrap');
+
+        RC_Style::enqueue_style('jquery-stepy');
+
+        /*加载自定义JS和CSS*/
+        RC_Style::enqueue_style('maintain', RC_App::apps_url('statics/css/maintain.css', $this->__FILE__), array(), false, false);
+        RC_Script::enqueue_script('maintain', RC_App::apps_url('statics/js/maintain.js', $this->__FILE__), array(), false, 1);
         RC_Script::localize_script('maintain', 'js_lang_maintain', config('app-maintain::jslang.maintain_page'));
 
-		ecjia_screen::get_current_screen()->add_nav_here(new admin_nav_here(__('运维工具', 'maintain'), RC_Uri::url('maintain/admin/init')));
-	}
+        ecjia_screen::get_current_screen()->add_nav_here(new admin_nav_here(__('运维工具', 'maintain'), RC_Uri::url('maintain/admin/init')));
+    }
 
-	
-	/**
-	 * 工具列表页面加载
-	 */
-	public function init() {
-		$this->admin_priv('maintain_manage');
-	
-		ecjia_screen::get_current_screen()->remove_last_nav_here();
-		ecjia_screen::get_current_screen()->add_nav_here(new admin_nav_here(__('运维工具', 'maintain')));
-		$this->assign('ur_here', __('运维工具', 'maintain'));
-	
-		$data = $this->maintain_list();
-		$this->assign('data', $data);
-	
-		return $this->display('maintain_list.dwt');
-	}
 
-	/**
-	 * 工具列表页面加载
-	 */
-	public function run() {
-		$this->admin_priv('maintain_manage');
-		
-		ecjia_screen::get_current_screen()->add_nav_here(new admin_nav_here(__('运行', 'maintain')));
-		$this->assign('ur_here', __('运行','maintain'));
-		$this->assign('action_link', array('text' => __('运维工具','maintain'), 'href' => RC_Uri::url('maintain/admin/init')));
-		$code = trim($_GET['code']);
-		if (!empty($code)) {
-			$factory = new \Ecjia\App\Maintain\Factory();
-			$maintain = $factory->command($code);
-			$config['code'] = $maintain->getCode();
-			$config['description'] = $maintain->getDescription();
-			$config['name'] = $maintain->getName();
-			$this->assign('config', $config);
-		}
+    /**
+     * 工具列表页面加载
+     */
+    public function init()
+    {
+        $this->admin_priv('maintain_manage');
+
+        ecjia_screen::get_current_screen()->remove_last_nav_here();
+        ecjia_screen::get_current_screen()->add_nav_here(new admin_nav_here(__('运维工具', 'maintain')));
+        $this->assign('ur_here', __('运维工具', 'maintain'));
+
+        $data = $this->maintain_list();
+        $this->assign('data', $data);
+
+        return $this->display('maintain_list.dwt');
+    }
+
+    /**
+     * 工具列表页面加载
+     */
+    public function run()
+    {
+        $this->admin_priv('maintain_manage');
+
+        ecjia_screen::get_current_screen()->add_nav_here(new admin_nav_here(__('运行', 'maintain')));
+        $this->assign('ur_here', __('运行', 'maintain'));
+        $this->assign('action_link', array('text' => __('运维工具', 'maintain'), 'href' => RC_Uri::url('maintain/admin/init')));
+        $code = trim($_GET['code']);
+        if (!empty($code)) {
+            $factory               = new \Ecjia\App\Maintain\Factory();
+            $maintain              = $factory->command($code);
+            $config['code']        = $maintain->getCode();
+            $config['description'] = $maintain->getDescription();
+            $config['name']        = $maintain->getName();
+            $this->assign('config', $config);
+        }
 
         return $this->display('maintain_run.dwt');
-	}
-	
-	/**
-	 * 执行运行
-	 */
-	public function command_run() {
-		$this->admin_priv('maintain_manage');
-		
-		$code = trim($_GET['code']);
-		if (empty($code)) {
+    }
+
+    /**
+     * 执行运行
+     */
+    public function command_run()
+    {
+        $this->admin_priv('maintain_manage');
+
+        $code = trim($_GET['code']);
+        if (empty($code)) {
             return $this->showmessage(__('参数缺少', 'maintain'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
-		}
+        }
 
         try {
-            $factory = new \Ecjia\App\Maintain\Factory();
+            $factory  = new \Ecjia\App\Maintain\Factory();
             $maintain = $factory->command($code);
-            $result = $maintain->run();
-        }
-        catch (\Royalcms\Component\Database\QueryException $e) {
+            $result   = $maintain->run();
+        } catch (\Royalcms\Component\Database\QueryException $e) {
             return $this->showmessage($e->getMessage(), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
-        }
-        catch (InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
+            return $this->showmessage($e->getMessage(), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
+        } catch (\Exception $e) {
             return $this->showmessage($e->getMessage(), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
         }
 
         if (is_ecjia_error($result)) {
-            return $this->showmessage($result->get_error_message(), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR, array('pjaxurl' => RC_Uri::url('maintain/admin/run',array('code' => $code))));
+            return $this->showmessage($result->get_error_message(), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR, array('pjaxurl' => RC_Uri::url('maintain/admin/run', array('code' => $code))));
         }
 
         if ($result instanceof \Ecjia\App\Maintain\CommandOutput) {
@@ -146,27 +161,28 @@ class admin extends ecjia_admin {
             $message = __('运行成功', 'maintain');
         }
 
-        return $this->showmessage($message, ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS, array('pjaxurl' => RC_Uri::url('maintain/admin/run',array('code' => $code))));
-	}
-	
+        return $this->showmessage($message, ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS, array('pjaxurl' => RC_Uri::url('maintain/admin/run', array('code' => $code))));
+    }
 
-	/**
-	 * 获取工具信息
-	 */
-	private function maintain_list() {
-	
-		$maintain_list = array();
-	
-		$factory = new \Ecjia\App\Maintain\Factory();
-		$maintain_data = $factory->getCommands();
-		foreach ($maintain_data as $k => $event) {
-			$maintain_list[$k]['code'] = $event->getCode();
-			$maintain_list[$k]['name'] = $event->getName();
-			$maintain_list[$k]['description'] = $event->getDescription();
-			$maintain_list[$k]['icon'] = $event->getIcon();
-		}
-		return $maintain_list;
-	}
+
+    /**
+     * 获取工具信息
+     */
+    private function maintain_list()
+    {
+
+        $maintain_list = array();
+
+        $factory       = new \Ecjia\App\Maintain\Factory();
+        $maintain_data = $factory->getCommands();
+        foreach ($maintain_data as $k => $event) {
+            $maintain_list[$k]['code']        = $event->getCode();
+            $maintain_list[$k]['name']        = $event->getName();
+            $maintain_list[$k]['description'] = $event->getDescription();
+            $maintain_list[$k]['icon']        = $event->getIcon();
+        }
+        return $maintain_list;
+    }
 }
 
 //end
