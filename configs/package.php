@@ -52,7 +52,7 @@ defined('IN_ROYALCMS') or exit('No permission resources.');
 return array(
 	'identifier'  => 'ecjia.maintain',
 	'directory'   => 'maintain',
-	'name'		  => __('运维工具', 'maintain'),
+	'name'		  => __('工具', 'maintain'),
 	'description' => __('使用户方便维护指定功能', 'maintain'),
 	'author' 	  => 'ECJIA TEAM',			/* 作者 */
 	'website' 	  => 'http://www.ecjia.com',	/* 网址 */
