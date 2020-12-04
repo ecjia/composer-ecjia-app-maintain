@@ -47,7 +47,8 @@
 namespace Ecjia\App\Maintain\Commands;
 
 use Ecjia\App\Maintain\AbstractCommand;
-use Ecjia\System\Database\Migrate;
+use Ecjia\Component\Database\Migrate;
+use ecjia_error;
 use ecjia_update_cache;
 
 class DatabaseMigrate extends AbstractCommand
@@ -66,13 +67,13 @@ class DatabaseMigrate extends AbstractCommand
 
     public function __construct()
     {
-        $this->name = __('更新数据库结构', 'maintain');
+        $this->name        = __('更新数据库结构', 'maintain');
         $this->description = __('完成数据库升级未完成的迁移脚本执行', 'maintain');
     }
 
 
-    public function run() {
-
+    public function run()
+    {
         try {
             // 更新新增的迁移项
             $migrate = new Migrate();
@@ -84,9 +85,8 @@ class DatabaseMigrate extends AbstractCommand
             ecjia_update_cache::clean('front_template_cache');
 
             return true;
-        } catch (\Royalcms\Component\Database\QueryException $e) {
-            return new \ecjia_error('maintain_run_error', $e->getMessage());
+        } catch (\Exception $e) {
+            return new ecjia_error('maintain_run_error', $e->getMessage());
         }
-
     }
 }
