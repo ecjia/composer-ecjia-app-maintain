@@ -22,6 +22,7 @@ class MaintainServiceProvider extends  AppParentServiceProvider
     {
         RC_Service::addService('admin_purview', 'maintain', 'Ecjia\App\Maintain\Services\AdminPurviewService');
         RC_Service::addService('tool_menu', 'maintain', 'Ecjia\App\Maintain\Services\ToolMenuService');
+        RC_Service::addService('plugin_menu', 'maintain', 'Ecjia\App\Maintain\Services\PluginMenuService');
     }
     
 }
