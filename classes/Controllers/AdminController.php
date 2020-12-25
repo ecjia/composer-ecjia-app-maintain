@@ -48,12 +48,14 @@ namespace Ecjia\App\Maintain\Controllers;
 
 use admin_nav_here;
 use ecjia;
+use Ecjia\App\Maintain\MaintainPlugin;
 use ecjia_screen;
 use InvalidArgumentException;
 use RC_App;
 use RC_Script;
 use RC_Style;
 use RC_Uri;
+use Royalcms\Component\App\Exceptions\FileNotFoundException;
 
 
 class AdminController extends AdminBase
@@ -112,11 +114,19 @@ class AdminController extends AdminBase
         $this->assign('action_link', array('text' => __('运维工具', 'maintain'), 'href' => RC_Uri::url('maintain/admin/init')));
         $code = trim($_GET['code']);
         if (!empty($code)) {
-            $factory               = new \Ecjia\App\Maintain\Factory();
-            $maintain              = $factory->command($code);
-            $config['code']        = $maintain->getCode();
-            $config['description'] = $maintain->getDescription();
-            $config['name']        = $maintain->getName();
+            try {
+                $factory               = new \Ecjia\App\Maintain\Factory();
+                $maintain              = $factory->command($code);
+                $config['code']        = $maintain->getCode();
+                $config['name']        = $maintain->getName();
+                $config['description'] = $maintain->getDescription();
+            } catch (FileNotFoundException $exception) {
+                $plugin = (new MaintainPlugin())->getPluginInfo($code);
+                $config['code']        = $plugin['code'];
+                $config['name']        = $plugin['format_name'];
+                $config['description'] = $plugin['format_description'];
+            }
+
             $this->assign('config', $config);
         }
 
@@ -128,36 +138,39 @@ class AdminController extends AdminBase
      */
     public function command_run()
     {
-        $this->admin_priv('maintain_manage');
-
-        $code = trim($_GET['code']);
-        if (empty($code)) {
-            return $this->showmessage(__('参数缺少', 'maintain'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
-        }
-
         try {
+            $this->admin_priv('maintain_manage');
+
+            $code = trim($_GET['code']);
+            if (empty($code)) {
+                return $this->showmessage(__('参数缺少', 'maintain'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
+            }
+
+            //提前加载插件
+            $plugin = (new MaintainPlugin())->channel($code);
+            $plugin->handle();
+
             $factory  = new \Ecjia\App\Maintain\Factory();
             $maintain = $factory->command($code);
             $result   = $maintain->run();
-        } catch (\Royalcms\Component\Database\QueryException $e) {
-            return $this->showmessage($e->getMessage(), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
-        } catch (InvalidArgumentException $e) {
-            return $this->showmessage($e->getMessage(), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
+
+            if (is_ecjia_error($result)) {
+                return $this->showmessage($result->get_error_message(), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR, array('pjaxurl' => RC_Uri::url('maintain/admin/run', array('code' => $code))));
+            }
+
+            if ($result instanceof \Ecjia\App\Maintain\CommandOutput) {
+                $message = $result->getMessage();
+            } else {
+                $message = __('运行成功', 'maintain');
+            }
+
+            return $this->showmessage($message, ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS, array('pjaxurl' => RC_Uri::url('maintain/admin/run', array('code' => $code))));
+
         } catch (\Exception $e) {
             return $this->showmessage($e->getMessage(), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
+        } catch (\Error $e) {
+            return $this->showmessage($e->getMessage(), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
         }
-
-        if (is_ecjia_error($result)) {
-            return $this->showmessage($result->get_error_message(), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR, array('pjaxurl' => RC_Uri::url('maintain/admin/run', array('code' => $code))));
-        }
-
-        if ($result instanceof \Ecjia\App\Maintain\CommandOutput) {
-            $message = $result->getMessage();
-        } else {
-            $message = __('运行成功', 'maintain');
-        }
-
-        return $this->showmessage($message, ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS, array('pjaxurl' => RC_Uri::url('maintain/admin/run', array('code' => $code))));
     }
 
 
@@ -166,7 +179,6 @@ class AdminController extends AdminBase
      */
     private function maintain_list()
     {
-
         $maintain_list = array();
 
         $factory       = new \Ecjia\App\Maintain\Factory();
@@ -177,8 +189,20 @@ class AdminController extends AdminBase
             $maintain_list[$k]['description'] = $event->getDescription();
             $maintain_list[$k]['icon']        = $event->getIcon();
         }
+
+        $plugins = (new MaintainPlugin())->availablePluginList();
+
+        foreach ($plugins as $plugin) {
+            $code = $plugin['code'];
+            $maintain_list[$code]['code']        = $plugin['code'];
+            $maintain_list[$code]['name']        = $plugin['format_name'];
+            $maintain_list[$code]['description'] = $plugin['format_description'];
+            $maintain_list[$code]['icon']        = null;
+        }
+
         return $maintain_list;
     }
+
 }
 
 //end
