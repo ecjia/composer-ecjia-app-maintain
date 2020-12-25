@@ -45,123 +45,42 @@
 //  ---------------------------------------------------------------------------------
 //
 
-namespace Ecjia\App\Mail;
+namespace Ecjia\App\Maintain;
 
-use Ecjia\Component\Plugin\PluginModel;
-use Ecjia\Component\Plugin\Storages\MailPluginStorage;
+use Ecjia\Component\Plugin\PluginNoModel;
+use Ecjia\Component\Plugin\Storages\MaintainPluginStorage;
 use ecjia_error;
 
-class MaintainPlugin extends PluginModel
+class MaintainPlugin extends PluginNoModel
 {
-    protected $table = 'notification_channels';
-    
     /**
-     * 当前插件种类的唯一标识字段名
-     */
-    public function codeFieldName()
-    {
-        return 'channel_code';
-    }
-    
-    /**
-     * 激活的支付插件列表
+     * 获取当前类型的已经安装激活插件
      */
     public function getInstalledPlugins()
     {
-        return (new MailPluginStorage())->getPlugins();
+        return (new MaintainPluginStorage())->getPlugins();
     }
-    
-    /**
-     * 获取数据库中启用的插件列表
-     */
-    public function getEnableList()
-    {
-        $data = $this->enabled()->orderBy('channel_code', 'asc')->get()->toArray();
-        return $data;
-    }
-    
-    /**
-     * 获取数据库中插件数据
-     */
-    public function getPluginDataById($id)
-    {
-        return $this->where('channel_id', $id)->where('enabled', 1)->first();
-    }
-    
-    public function getPluginDataByCode($code)
-    {
-        return $this->where('channel_code', $code)->where('enabled', 1)->first();
-    }
-    
-    public function getPluginDataByName($name)
-    {
-        return $this->where('channel_name', $name)->where('enabled', 1)->first();
-    }
-    
+
     /**
      * 获取数据中的Config配置数据，并处理
      */
     public function configData($code)
     {
-        $pluginData = $this->getPluginDataByCode($code);
-    
-        $config = $this->unserializeConfig($pluginData['channel_config']);
-    
-        $config['channel_code'] = $code;
-        $config['channel_name'] = $pluginData['channel_name'];
-    
-        return $config;
-    }
-    
-    /**
-     * 限制查询只包括启动的短信渠道。
-     *
-     * @return \Royalcms\Component\Database\Eloquent\Builder
-     */
-    public function scopeEnabled($query)
-    {
-        return $query->where('channel_type', 'mail')->where('enabled', 1);
+
     }
 
-    /**
-     * @return \Ecjia\App\Mail\MailAbstract|ecjia_error
-     */
-    public function defaultChannel()
-    {
-        $data = $this->enabled()->orderBy('sort_order', 'asc')->first();
-        
-        $config = $this->unserializeConfig($data->channel_config);
-     
-        $handler = $this->pluginInstance($data->channel_code, $config);
-        
-        if (!$handler) {
-            return new ecjia_error('code_not_found', $data->channel_code . ' plugin not found!');
-        }
-        
-        return $handler;
-    }
-
-    /**
-     * @return \Ecjia\App\Mail\MailAbstract|ecjia_error
-     */
     public function channel($code = null)
     {
-        if (is_null($code)) {
-            return $this->defaultChannel();
-        }
-        
-        $data = $this->getPluginDataByCode($code);
-        
-        $config = $this->unserializeConfig($data->channel_config);
-         
-        $handler = $this->pluginInstance($data->channel_code, $config);
-        
+        /**
+         * @var MaintainAbstract $handler
+         */
+        $handler = $this->pluginInstance($code);
+
         if (!$handler) {
-            return new ecjia_error('code_not_found', $data->channel_code . ' plugin not found!');
+            return new ecjia_error('code_not_found', $code . ' plugin not found!');
         }
-        
+
         return $handler;
-        
     }
     
 }
