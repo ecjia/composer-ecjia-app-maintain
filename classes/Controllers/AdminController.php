@@ -79,6 +79,7 @@ class AdminController extends AdminBase
         RC_Script::localize_script('maintain', 'js_lang_maintain', config('app-maintain::jslang.maintain_page'));
 
         ecjia_screen::get_current_screen()->add_nav_here(new admin_nav_here(__('运维工具', 'maintain'), RC_Uri::url('maintain/admin/init')));
+        ecjia_screen::get_current_screen()->set_parentage('maintain', 'maintain/admin');
     }
 
 
