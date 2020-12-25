@@ -66,10 +66,14 @@ class MaintainPlugin extends PluginNoModel
      */
     public function configData($code)
     {
-
+        return [];
     }
 
-    public function channel($code = null)
+    /**
+     * @param $code
+     * @return MaintainAbstract|ecjia_error
+     */
+    public function channel($code)
     {
         /**
          * @var MaintainAbstract $handler
@@ -81,6 +85,15 @@ class MaintainPlugin extends PluginNoModel
         }
 
         return $handler;
+    }
+
+    /**
+     * @param $code
+     */
+    public function getPluginInfo($code)
+    {
+        $plugins = $this->availablePluginList();
+        return array_get($plugins, $code);
     }
     
 }

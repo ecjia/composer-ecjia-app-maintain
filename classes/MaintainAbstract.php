@@ -55,6 +55,11 @@ use Ecjia\Component\Plugin\AbstractPlugin;
 abstract class MaintainAbstract extends AbstractPlugin
 {
 
+    /**
+     * 插件处理类
+     * @return mixed
+     */
+    abstract public function handle();
 
 }
 
