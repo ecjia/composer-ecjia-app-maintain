@@ -5,6 +5,7 @@ namespace Ecjia\App\Maintain;
 use RC_Hook;
 use RC_Cache;
 use InvalidArgumentException;
+use Royalcms\Component\App\Exceptions\FileNotFoundException;
 
 class Factory
 {
@@ -60,7 +61,7 @@ class Factory
     public function command($code)
     {
         if (!array_key_exists($code, self::$factories)) {
-            throw new InvalidArgumentException("Command '$code' is not supported.");
+            throw new FileNotFoundException("Command '$code' is not supported.");
         }
     
         $className = self::$factories[$code];
