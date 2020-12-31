@@ -147,8 +147,12 @@ class AdminController extends AdminBase
             }
 
             //提前加载插件
-            $plugin = (new MaintainPlugin())->channel($code);
-            $plugin->handle();
+            try {
+                $plugin = (new MaintainPlugin())->channel($code);
+                $plugin->handle();
+            } catch (\Exception $exception) {
+                ecjia_log_error($exception);
+            }
 
             $factory  = new \Ecjia\App\Maintain\Factory();
             $maintain = $factory->command($code);
