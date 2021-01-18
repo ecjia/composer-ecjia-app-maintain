@@ -49,8 +49,8 @@ namespace Ecjia\App\Maintain\Controllers;
 use admin_nav_here;
 use ecjia;
 use Ecjia\App\Maintain\MaintainPlugin;
+use Ecjia\App\Maintain\EventFactory\EventFactory;
 use ecjia_screen;
-use InvalidArgumentException;
 use RC_App;
 use RC_Script;
 use RC_Style;
@@ -115,7 +115,7 @@ class AdminController extends AdminBase
         $code = trim($_GET['code']);
         if (!empty($code)) {
             try {
-                $factory               = new \Ecjia\App\Maintain\Factory();
+                $factory               = new EventFactory();
                 $maintain              = $factory->command($code);
                 $config['code']        = $maintain->getCode();
                 $config['name']        = $maintain->getName();
@@ -154,7 +154,7 @@ class AdminController extends AdminBase
                 ecjia_log_error($exception);
             }
 
-            $factory  = new \Ecjia\App\Maintain\Factory();
+            $factory  = new EventFactory();
             $maintain = $factory->command($code);
             $result   = $maintain->run();
 
@@ -185,7 +185,7 @@ class AdminController extends AdminBase
     {
         $maintain_list = array();
 
-        $factory       = new \Ecjia\App\Maintain\Factory();
+        $factory       = new EventFactory();
         $maintain_data = $factory->getCommands();
         foreach ($maintain_data as $k => $event) {
             $maintain_list[$k]['code']        = $event->getCode();
