@@ -16,5 +16,6 @@ class AdminBase extends EcjiaAdminController
 
         $this->__FILE__ = dirname(dirname(__FILE__));
 
+
     }
 }
